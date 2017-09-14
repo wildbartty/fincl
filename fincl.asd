@@ -6,6 +6,6 @@
   :license "Specify license here"
   :serial t
   :components ((:file "package")
-	       (:file "parser")
+	       (:file "words")
                (:file "fincl")))
 
