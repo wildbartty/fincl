@@ -8,8 +8,18 @@
   nil
   "The global data stack" )
 
-(defvar  *memory*
-  (make-hash-table))
+(defvar *memory*
+  nil)
+
+(defmacro def-stack-op (name lambda-list &body body)
+  (if (member '&optional lambda-list)
+      (print 'hi))
+  `(defun ,name ,lambda-list ,@body))
+
+(defun test (&optional (stack 21) (foo 3))
+  (+ foo stack))
+(defun depth (&optional (stack *stack*))
+  (length stack))
 
 (defun dup (&optional (stack *stack*))
   (let ((var (car stack)))
@@ -29,4 +39,4 @@
   (push (nth 1 stack) stack))
 
 (defun clear (&optional (stack *stack*))
-  (setf *stack* nil))
+  (setf stack nil))
