@@ -1,0 +1,4 @@
+(in-package #:fincl)
+
+(defun ello ()
+  (format t "Hello World ~%"))
