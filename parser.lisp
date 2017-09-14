@@ -14,4 +14,5 @@
     (push thing1 *stack*)
     (push thing2 *stack*)))
 
-(defun )
+;(defun )
+
