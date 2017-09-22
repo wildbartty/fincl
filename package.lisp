@@ -1,5 +1,6 @@
 ;;;; package.lisp
 
 (defpackage #:fincl
-  (:use #:cl))
+  (:use #:cl
+	#:alexandria))
 
