@@ -4,25 +4,26 @@
   (defun t->string (x)
     (format nil "~a" x))
   (defvar *words* nil)
-  )
+  (defun join-str (with &rest rest)
+    (reduce #'(lambda (x y) (concatenate 'string x with y)) rest)))
 
-(defclass forth-word ()
-  ;; defines the basic structure of a forth word
-  ((length :reader word-length :initarg :length)
-   (name :reader word-name :initarg :name)
-   (definition :reader word-def :initarg :word-def)))
 
-(defmacro def-word (name def)
+(defmacro make-forth-word (name &rest word-def)
+  (let ((name-name (gensym))
+	(def-str word-def)
+	(len (length (t->string name))))
+    `(let ((,name-name (t->string ',name)))
+       (list ,len ,name-name ',@def-str))))
+
+(defmacro def-word (name &rest def)
   ;; A macro that defines a forth word and pushes it
   ;; onto the word list
   (let ((word-class-name (gensym))
 	(name-string (t->string name))
 	(length (length (t->string name)))
-	(def-string (mapcar #'t->string def)))
-    `(let ((,word-class-name (make-instance 'forth-word
-					    :length ,length
-					    :name ,name-string
-					    :word-def ',def-string)))
+	(def-string def))
+    `(let ((,word-class-name (make-forth-word ,name-string
+					      ,@def-string)))
        (push ,word-class-name *words*)
        ,word-class-name)))
 
@@ -32,16 +33,25 @@
 	(y (gensym "y")))
     `(let ((,name-string (t->string ',word-name)))
        (loop for ,x in *words*
-	  and ,y = (word-name ,x)
-	    do (print ,y)))))
+	  until (string= ,name-string (second ,x))
+	  finally (print (join-str " "  (car (cddr ,x))))))))
 
+(defmacro find-arity (name)
+  (let ((str-stream (gensym))
+	(str (gensym)))
+    `(let ((,str ""))
+	(with-output-to-string (,str-stream (make-string 0))
+	  (describe ',name))
+	,str-stream)))
+
+(def-word foo (1 2 3 + + \.))
+
+#|
 (defvar *stack*
   nil
-  "The global data stack" )
+  "The global data stack")
 
-(defvar *memory*
-  nil)
-
+#|
 (defmacro def-stack-op (name lambda-list &body body)
   (let ((opt-vars 
 	 (cond
@@ -56,6 +66,8 @@
 
 (def-stack-op test2 (&optional foo)
   (cons foo stack))
+
+|#
 
 (defmacro arity (function)
   (let ((stream-name (gensym)))
@@ -83,3 +95,4 @@
 
 (defun clear (&optional (stack *stack*))
   (setf stack nil))
+|#
