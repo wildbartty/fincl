@@ -8,5 +8,6 @@
   :depends-on (#:alexandria)
   :components ((:file "package")
 	       (:file "words")
+	       (:file "builtins")
                (:file "fincl")))
 

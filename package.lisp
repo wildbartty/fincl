@@ -2,5 +2,9 @@
 
 (defpackage #:fincl
   (:use #:cl
-	#:alexandria))
+	#:alexandria)
+  (:export #:def-word))
 
+(defpackage #:fincl-builtins
+  (:use #:cl
+	#:fincl))
