@@ -1,26 +1,22 @@
-(in-package #:fincl)
+(in-package #:fincl-base)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun t->string (x)
     (format nil "~a" x))
-  (defvar *words* nil)
+  (defparameter *words* nil)
   (defun join-str (with &rest rest)
     (reduce #'(lambda (x y) (concatenate 'string x with y)) rest)))
 
 
 (defmacro make-forth-word (name &rest word-def)
-  (let ((name-name (gensym))
-	(def-str word-def)
-	(len (length (t->string name))))
-    `(let ((,name-name (t->string ',name)))
-       (list ,len ,name-name ',@def-str))))
+  `(list ,name ',@word-def))
 
 (defmacro def-word (name &rest def)
   ;; A macro that defines a forth word and pushes it
   ;; onto the word list
   (let ((word-class-name (gensym))
 	(name-string (t->string name))
-	(length (length (t->string name)))
+	;(length (length (t->string name)))
 	(def-string def))
     `(let ((,word-class-name (make-forth-word ,name-string
 					      ,@def-string)))
@@ -29,27 +25,40 @@
 
 (defmacro see-word (word-name)
   (let ((name-string (gensym "name"))
-	(x (gensym "x"))
-	(y (gensym "y")))
+	(x (gensym "x")))
     `(let ((,name-string (t->string ',word-name)))
-       (loop for ,x in *words*
-	  until (string= ,name-string (second ,x))
-	  finally (print (join-str " "  (car (cddr ,x))))))))
+       (loop :for ,x :in *words*
+	  :until (string= ,name-string (car ,x))
+	  :finally (return
+		     (join-str " " (concatenate 'string ',word-name ":")
+			       (apply #'join-str " "
+				      (mapcar #'t->string
+					      (car (cdr ,x))))))))))
 
-(defmacro find-arity (name)
-  (let ((str-stream (gensym))
-	(str (gensym)))
-    `(let ((,str ""))
-	(with-output-to-string (,str-stream (make-string 0))
-	  (describe ',name))
-	,str-stream)))
+(defun find-word (name)
+  (loop
+     :for x :in *words*
+     :when (equal name (car x))
+     :do (return (cadr x))))
 
-(def-word foo (1 2 3 + + \.))
+(def-word "foo" (1 2 3 + + \.))
+;;;¤¿¡±¢–
 
-#|
 (defvar *stack*
   nil
   "The global data stack")
+
+(defun callablep (item)
+  (symbolp item))
+
+(defgeneric call (thing &rest rest))
+
+(defmethod call ((symbol number) &rest rest)
+  (push symbol *stack*)
+  (call rest))
+
+(defmethod call (thing &rest rest)
+  'ok)
 
 #|
 (defmacro def-stack-op (name lambda-list &body body)
@@ -68,7 +77,7 @@
   (cons foo stack))
 
 |#
-
+#|
 (defmacro arity (function)
   (let ((stream-name (gensym)))
     `(describe #',function)))
@@ -96,3 +105,7 @@
 (defun clear (&optional (stack *stack*))
   (setf stack nil))
 |#
+
+;; (let ((pack (find-package :fincl-base)))
+;;   (do-all-symbols (sym pack) (when (eql (symbol-package sym) pack)
+;; 			       (export sym))))
