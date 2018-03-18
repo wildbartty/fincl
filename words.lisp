@@ -51,14 +51,6 @@
 (defun callablep (item)
   (symbolp item))
 
-(defgeneric call (thing &rest rest))
-
-(defmethod call ((symbol number) &rest rest)
-  (push symbol *stack*)
-  (call rest))
-
-(defmethod call (thing &rest rest)
-  'ok)
 
 #|
 (defmacro def-stack-op (name lambda-list &body body)
